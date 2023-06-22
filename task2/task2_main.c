@@ -178,7 +178,7 @@ void calculateAQIFromFile(char *dataFilename)
     fclose(aqiFile);
     printf("AQI calculation completed. Results stored in 'dust_aqi.csv'.\n");
 }
-// Task 2.3
+// Task 2.3 - Task này sai toét
 void processSensorData(char *dataFilename)
 {
     FILE *dataFile = fopen(dataFilename, "r");
