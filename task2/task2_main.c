@@ -345,8 +345,6 @@ void calculatePollutionStatistics(char *dataFilename) {
 
     for (int i = 0; i < limit; i++) {
         if (visited[i] == 1) {
-
-//            int duration_arr = dataMatrix[i];
             for (size_t j = 0; j < 7; j++) {
                 int duration = dataMatrix[i][j];
                 fprintf(statisticsFile, "%d, %s, %d\n", i, aqi_level[j], duration);
