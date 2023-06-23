@@ -9,6 +9,15 @@ int customERROR[4];
 int sensor_count = 0;
 int duration;
 
+/*
+@params: 
+
+
+
+
+
+*/
+
 // Task 2.1
 void filterOutliers(char *dataFilename) {
     FILE *dataFile = fopen(dataFilename, "r");
@@ -27,7 +36,7 @@ void filterOutliers(char *dataFilename) {
     char line[MAX_LINE_LENGTH];
     int lineCount = 0;
     int numOutliers = 0;
-    time_t timeArr[3];
+    
     while (fgets(line, sizeof(line), dataFile) != NULL) {
 
         lineCount++;
@@ -40,7 +49,7 @@ void filterOutliers(char *dataFilename) {
         char idStr[10];
         char time_[20];
         char valueStr[10];
-
+        //Possible error: Không dùng timestamp, next ngày là chết
         sscanf(line, "%[^,],%[^,],%[^,\n]", idStr, time_, valueStr);
 
         if (lineCount == 2) {
@@ -184,7 +193,7 @@ void calculateAQIFromFile(char *dataFilename)
 
 
 void processSensorData(char *dataFilename) {
-//    printf("hi");
+
     FILE *dataFile = fopen(dataFilename, "r");
     FILE *summaryFile = fopen("dust_summary.csv", "w");
 
@@ -266,7 +275,7 @@ void processSensorData(char *dataFilename) {
         fprintf(summaryFile, "%d, max, %s, %.1f\n", i, timeData[i][1], sensorStat[i][1]);
         fprintf(summaryFile, "%d, min, %s, %.1f\n", i, timeData[i][0], sensorStat[i][0]);
         float mean = sensorStat[i][2] / sensorStat[i][3];
-
+        
         fprintf(summaryFile, "%d, mean, %d:00:00, %.1f\n", i, duration, mean);
     }
     fclose(summaryFile);
@@ -297,7 +306,7 @@ void calculatePollutionStatistics(char *dataFilename) {
             "Extremely hazardous"};
 
     int limit = sensor_count; // maximum sensors
-    int (*dataMatrix)[limit][7];
+    int dataMatrix[limit][7];
     int visited[limit];
 
     /*
@@ -345,31 +354,31 @@ void calculatePollutionStatistics(char *dataFilename) {
         // Increment the corresponding pollution level for the current sensor. Lặp lại 2.2 do input là file gốc.
         if (value >= 0 && value <= 12)
         {
-            (*dataMatrix)[id][0]++;
+            dataMatrix[id][0]++;
         }
         else if (value > 12 && value <= 35.4)
         {
-            (*dataMatrix)[id][1]++;
+            dataMatrix[id][1]++;
         }
         else if (value > 35.4 && value <= 55.4)
         {
-            (*dataMatrix)[id][2]++;
+            dataMatrix[id][2]++;
         }
         else if (value > 55.4 && value <= 150.4)
         {
-            (*dataMatrix)[id][3]++;
+            dataMatrix[id][3]++;
         }
         else if (value > 150.4 && value <= 250.4)
         {
-            (*dataMatrix)[id][4]++;
+            dataMatrix[id][4]++;
         }
         else if (value > 250.4 && value <= 350.4)
         {
-            (*dataMatrix)[id][5]++;
+            dataMatrix[id][5]++;
         }
         else if (value > 350.4 && value <= 550.5)
         {
-            (*dataMatrix)[id][6]++;
+            dataMatrix[id][6]++;
         }
         visited[id] = 1;
     }
@@ -379,14 +388,10 @@ void calculatePollutionStatistics(char *dataFilename) {
     // Write the pollution duration to the statistics file
     fprintf(statisticsFile, "id, pollution, duration\n");
 
-    for (int i = 0; i < limit; i++)
-    {
-        if (visited[i] == 1)
-        {
-                     
-            for (size_t j = 0; j < 7; j++)
-            {
-                int duration = (*dataMatrix)[i][j];
+    for (int i = 0; i < limit; i++) {
+        if (visited[i] == 1) {
+            for (size_t j = 0; j < 7; j++) {
+                int duration = dataMatrix[i][j];
                 fprintf(statisticsFile, "%d, %s, %d\n", i, aqi_level[j], duration);
             }
         }
