@@ -4,6 +4,8 @@
 
 #define MAX_LINE_LENGTH 256
 
+int customERROR[4];
+
 // Task 2.1
 void filterOutliers(char *dataFilename)
 {
@@ -268,7 +270,7 @@ void calculatePollutionStatistics(char *dataFilename)
     if (dataFile == NULL || statisticsFile == NULL)
     {
         dataFile = fopen("./dust_aqi.csv", "r");
-        printf("Error: Input file not found or not accessible.\n");
+        printf("Error 01: input file not found or not accessible\n");
         // return;
     }
 
@@ -388,14 +390,14 @@ void calculatePollutionStatistics(char *dataFilename)
 
 int main(int argc, char *argv[])
 {
-/*
+
     if (argc != 2)
     {
         printf("Error 03: invalid command\n");
         printf("Usage: program_name data_file\n");
         return 1;
     }
-*/
+
     char *dataFilename = argv[1];
 
     filterOutliers(dataFilename);
