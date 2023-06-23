@@ -1,19 +1,23 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #define MAX_LINE_LENGTH 256
 
 int customERROR[4];
+int sensor_count = 0;
+int duration;
 
 // Task 2.1
-void filterOutliers(char *dataFilename)
-{
+void filterOutliers(char *dataFilename) {
     FILE *dataFile = fopen(dataFilename, "r");
     FILE *outliersFile = fopen("dust_outlier.csv", "w");
 
-    if (dataFile == NULL || outliersFile == NULL)
-    {
+    int durationArr[2];
+
+
+    if (dataFile == NULL || outliersFile == NULL) {
         printf("Error 01: input file not found or not accessible\n");
         return;
     }
@@ -23,31 +27,42 @@ void filterOutliers(char *dataFilename)
     char line[MAX_LINE_LENGTH];
     int lineCount = 0;
     int numOutliers = 0;
+    time_t timeArr[3];
+    while (fgets(line, sizeof(line), dataFile) != NULL) {
 
-    while (fgets(line, sizeof(line), dataFile) != NULL)
-    {
         lineCount++;
 
         // Skip header line
-        if (line[0] == 'i')
-        {
+        if (line[0] == 'i') {
             continue;
         }
 
         char idStr[10];
-        char time[20];
+        char time_[20];
         char valueStr[10];
 
-        sscanf(line, "%[^,],%[^,],%[^,\n]", idStr, time, valueStr);
+        sscanf(line, "%[^,],%[^,],%[^,\n]", idStr, time_, valueStr);
+
+        if (lineCount == 2) {
+            int hour;
+            sscanf(time_, "%*d:%*d:%*d %d", &hour);
+            durationArr[0] = hour;
+        } else if (lineCount > 2){
+            int hour;
+            sscanf(time_, "%*d:%*d:%*d %d", &hour);
+            durationArr[1] = hour;
+        }
 
         // Check if any field is blank
-        if (idStr[0] == '\0' || time[0] == '\0' || valueStr[0] == '\0')
-        {
+        if (idStr[0] == '\0' || time_[0] == '\0' || valueStr[0] == '\0') {
             printf("Error 04: data is missing at line %d\n", lineCount);
             continue;
         }
 
         int id = atoi(idStr);
+        if (id > sensor_count) {
+            sensor_count = id;
+        }
         float value = atof(valueStr);
 
         // Check if id is valid
@@ -58,13 +73,12 @@ void filterOutliers(char *dataFilename)
         }
 
         // Check if value is an outlier
-        if (value < 5.0 || value > 550.5)
-        {
-            fprintf(outliersFile, "%s,%s,%s\n", idStr, time, valueStr);
+        if (value < 5.0 || value > 550.5) {
+            fprintf(outliersFile, "%s,%s,%s\n", idStr, time_, valueStr);
             numOutliers++;
         }
     }
-
+    duration = durationArr[1] - durationArr[0];
     fprintf(outliersFile, "number of outliers: %d\n", numOutliers); //Sao mày ko lên trên đầu được :(
 
     fclose(dataFile);
@@ -84,10 +98,9 @@ void calculateAQIFromFile(char *dataFilename)
 {
     FILE *dataFile = fopen(dataFilename, "r");
     FILE *aqiFile = fopen("dust_aqi.csv", "w");
-    
 
-    if (dataFile == NULL || aqiFile == NULL)
-    {
+
+    if (dataFile == NULL || aqiFile == NULL) {
         printf("Error 01: input file not found or not accessible\n");
         return;
     }
@@ -97,13 +110,11 @@ void calculateAQIFromFile(char *dataFilename)
     char line[MAX_LINE_LENGTH];
     int lineCount = 0;
 
-    while (fgets(line, sizeof(line), dataFile) != NULL)
-    {
+    while (fgets(line, sizeof(line), dataFile) != NULL) {
         lineCount++;
 
         // Skip header line
-        if (line[0] == 'i')
-        {
+        if (line[0] == 'i') {
             continue;
         }
 
@@ -114,8 +125,7 @@ void calculateAQIFromFile(char *dataFilename)
         sscanf(line, "%[^,],%[^,],%[^,\n]", idStr, time, valueStr);
 
         // Check if any field is blank
-        if (idStr[0] == '\0' || time[0] == '\0' || valueStr[0] == '\0')
-        {
+        if (idStr[0] == '\0' || time[0] == '\0' || valueStr[0] == '\0') {
             printf("Error 04: data is missing at line %d\n", lineCount);
             continue;
         }
@@ -124,8 +134,7 @@ void calculateAQIFromFile(char *dataFilename)
         float value = atof(valueStr);
 
         // Check if id is valid
-        if (id <= 0)
-        {
+        if (id <= 0) {
             printf("Error 04: data is missing or invalid at line %d\n", lineCount);
             continue;
         }
@@ -140,38 +149,25 @@ void calculateAQIFromFile(char *dataFilename)
         int aqi;
         const char *pollution;
 
-        if (value >= 0 && value < 12)
-        {
+        if (value >= 0 && value < 12) {
             aqi = AQIcalculating(value, 0, 12, 0, 50);
             pollution = "Good";
-        }
-        else if (value >= 12 && value < 35.5)
-        {
+        } else if (value >= 12 && value < 35.5) {
             aqi = AQIcalculating(value, 12, 35.5, 51, 100);
             pollution = "Moderate";
-        }
-        else if (value >= 35.5 && value < 55.5)
-        {
+        } else if (value >= 35.5 && value < 55.5) {
             aqi = AQIcalculating(value, 35.5, 55.5, 101, 150);
             pollution = "Slightly unhealthy";
-        }
-        else if (value >= 55.5 && value < 150.5)
-        {
+        } else if (value >= 55.5 && value < 150.5) {
             aqi = AQIcalculating(value, 55.5, 150.5, 151, 200);
             pollution = "Unhealthy";
-        }
-        else if (value >= 150.5 && value < 250.5)
-        {
+        } else if (value >= 150.5 && value < 250.5) {
             aqi = AQIcalculating(value, 150.5, 250.5, 201, 300);
             pollution = "Very unhealthy";
-        }
-        else if (value >= 250.5 && value < 350.5)
-        {
+        } else if (value >= 250.5 && value < 350.5) {
             aqi = AQIcalculating(value, 250.5, 350.5, 301, 400);
             pollution = "Hazardous";
-        }
-        else
-        {
+        } else {
             aqi = AQIcalculating(value, 350.5, 550.5, 401, 500);
             pollution = "Extremely hazardous";
         }
@@ -185,41 +181,43 @@ void calculateAQIFromFile(char *dataFilename)
 }
 
 // Task 2.3
-void processSensorData(char *dataFilename)
-{
+
+
+void processSensorData(char *dataFilename) {
+//    printf("hi");
     FILE *dataFile = fopen(dataFilename, "r");
     FILE *summaryFile = fopen("dust_summary.csv", "w");
 
-    if (dataFile == NULL || summaryFile == NULL)
-    {
+    if (dataFile == NULL || summaryFile == NULL) {
         printf("Error 01: input file not found or not accessible\n");
         return;
     }
+
 
     fprintf(summaryFile, "id,parameter,time,value\n");
 
     char line[MAX_LINE_LENGTH];
     int lineCount = 0;
 
-    
+    int limit = sensor_count + 1;
+    /// declare temp data
+    float sensorStat[limit][4];
+    for (int i = 0; i < limit; ++i) {
+        sensorStat[i][0] = 600;
+    }
+
+    char timeData[limit][2][20];
+
     // Update maximum, minimum, and sum for each sensor
     float maxValues[10] = {0};
     float minValues[10] = {550.5};
     float sumValues[10] = {0};
     int countValues[10] = {0};
-    char minTime[10][20];
-    char maxTime[10][20];
-    int numsensor = 0;
-    for (int i = 0; i < 10; i++) {
-        minValues[i] = 5550.5;
-    }
 
-    while (fgets(line, sizeof(line), dataFile) != NULL)
-    {
+    while (fgets(line, sizeof(line), dataFile) != NULL) {
         lineCount++;
         // Skip header line
-        if (line[0] == 'i')
-        {
+        if (line[0] == 'i') {
             continue;
         }
 
@@ -230,8 +228,7 @@ void processSensorData(char *dataFilename)
         sscanf(line, "%[^,],%[^,],%[^,\n]", idStr, time, valueStr);
 
         // Check if any field is blank
-        if (idStr[0] == '\0' || time[0] == '\0' || valueStr[0] == '\0')
-        {
+        if (idStr[0] == '\0' || time[0] == '\0' || valueStr[0] == '\0') {
             printf("Error 04: data is missing at line %d\n", lineCount);
             continue;
         }
@@ -250,48 +247,42 @@ void processSensorData(char *dataFilename)
         if (value < 5.0 || value > 550.5)
         {
             continue;
+        } else {
+            if (value < sensorStat[id][0]) {
+                sensorStat[id][0] = value;
+                strcpy(timeData[id][0], time);
+            } else if (value > sensorStat[id][1]) {
+                sensorStat[id][1] = value;
+                strcpy(timeData[id][1], time);
+            }
+            sensorStat[id][2] += value;
+            sensorStat[id][3]++;
         }
-        
-        sumValues[id - 1] += value;
-        countValues[id - 1]++;
-        numsensor = id > numsensor ? id : numsensor;
-        if (maxValues[id - 1] < value ) {
-            maxValues[id - 1] = value;
-            strcpy(maxTime[id - 1], time);
-        }
-        if (minValues[id - 1] > value && value > 5.0) {
-            minValues[id - 1] = value;
-            strcpy(minTime[id - 1], time);
-        }
-
     }
-    for (int i = 1; i <= numsensor; i++) {
-        // Write max, min, and mean to the summary file
-        fprintf(summaryFile, "%d, max, %s, %.1f\n", i, maxTime[i - 1], maxValues[i - 1]);
-        fprintf(summaryFile, "%d, min, %s, %.1f\n", i, minTime[i - 1], minValues[i - 1]);
-        fprintf(summaryFile, "%d, mean, 10:00:00, %.1f\n", i, sumValues[i - 1] / countValues[i - 1]);
-        // printf("%d, max, %s, %.1f\n", i, maxTime[i - 1], maxValues[i - 1]);
-        // printf("%d, min, %s, %.1f\n", i, minTime, minValues[i - 1]);
-        // printf("%d, mean, 10:00:00, %.1f\n", i, sumValues[i - 1] / countValues[i - 1]);
-    }
-
     fclose(dataFile);
+
+    // Write max, min, and mean to the summary file
+    for (int i = 1; i < limit; ++i) {
+        fprintf(summaryFile, "%d, max, %s, %.1f\n", i, timeData[i][1], sensorStat[i][1]);
+        fprintf(summaryFile, "%d, min, %s, %.1f\n", i, timeData[i][0], sensorStat[i][0]);
+        float mean = sensorStat[i][2] / sensorStat[i][3];
+
+        fprintf(summaryFile, "%d, mean, %d:00:00, %.1f\n", i, duration, mean);
+    }
     fclose(summaryFile);
     printf("Pollution summary values completed. Results stored in 'dust_summary.csv'.\n");
 }
 
 //Task 2.4
 
-void calculatePollutionStatistics(char *dataFilename)
-{
+void calculatePollutionStatistics(char *dataFilename) {
     FILE *dataFile = fopen(dataFilename, "r");
     FILE *statisticsFile = fopen("dust_statistics.csv", "w");
 
     // Number of conditions hard-coded
     int condition_count = 7;
 
-    if (dataFile == NULL || statisticsFile == NULL)
-    {
+    if (dataFile == NULL || statisticsFile == NULL) {
         dataFile = fopen("./dust_aqi.csv", "r");
         printf("Error: Input file not found or not accessible.\n");
         // return;
@@ -302,9 +293,10 @@ void calculatePollutionStatistics(char *dataFilename)
     char line[MAX_LINE_LENGTH];
     int lineCount = 0;
     char aqi_level[7][20] = {
-        "Good", "Moderate", "Slightly unhealthy", "Unhealthy", "Very unhealthy", "Hazardous", "Extremely hazardous"};
+            "Good", "Moderate", "Slightly unhealthy", "Unhealthy", "Very unhealthy", "Hazardous",
+            "Extremely hazardous"};
 
-    int limit = 10000; // maximum sensors
+    int limit = sensor_count; // maximum sensors
     int (*dataMatrix)[limit][7];
     int visited[limit];
 
@@ -313,16 +305,14 @@ void calculatePollutionStatistics(char *dataFilename)
     sẽ chứa thông tin về số lượng lượt appear của level `j` của chỉ số `i`
     e.g dataMatrix[10][2] sẽ chứa số lần "Moderate" xuất hiện với sensor 10
     */
-     
+
 
     lineCount = 0;
-    while (fgets(line, sizeof(line), dataFile) != NULL)
-    {
+    while (fgets(line, sizeof(line), dataFile) != NULL) {
         lineCount++;
 
         // Skip header line
-        if (line[0] == 'i')
-        {
+        if (line[0] == 'i') {
             continue;
         }
 
@@ -333,8 +323,7 @@ void calculatePollutionStatistics(char *dataFilename)
         sscanf(line, "%[^,],%[^,],%[^,\n]", idStr, time, valueStr);
 
         // Check if any field is blank. Lặp lại 2.1 check outlier.
-        if (idStr[0] == '\0' || time[0] == '\0' || valueStr[0] == '\0')
-        {
+        if (idStr[0] == '\0' || time[0] == '\0' || valueStr[0] == '\0') {
             printf("Error 04: Data is missing at line %d\n", lineCount);
             continue;
         }
@@ -343,15 +332,13 @@ void calculatePollutionStatistics(char *dataFilename)
         float value = atof(valueStr);
 
         // Check if id is valid
-        if (id <= 0)
-        {
+        if (id <= 0) {
             printf("Error 04: Data is missing or invalid at line %d\n", lineCount);
             continue;
         }
 
         // Validate data
-        if (value < 5.0 || value > 550.5)
-        {
+        if (value < 5.0 || value > 550.5) {
             continue;
         }
 
@@ -396,7 +383,7 @@ void calculatePollutionStatistics(char *dataFilename)
     {
         if (visited[i] == 1)
         {
-            int duration_arr = (*dataMatrix)[i][0];            
+                     
             for (size_t j = 0; j < 7; j++)
             {
                 int duration = (*dataMatrix)[i][j];

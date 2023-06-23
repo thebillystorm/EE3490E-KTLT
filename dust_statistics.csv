@@ -1,0 +1,22 @@
+id, pollution, duration
+1, Good, 5
+1, Moderate, 11
+1, Slightly unhealthy, 7
+1, Unhealthy, 50
+1, Very unhealthy, 63
+1, Hazardous, 59
+1, Extremely hazardous, 124
+2, Good, 4
+2, Moderate, 11
+2, Slightly unhealthy, 19
+2, Unhealthy, 73
+2, Very unhealthy, 63
+2, Hazardous, 48
+2, Extremely hazardous, 108
+3, Good, 3
+3, Moderate, 15
+3, Slightly unhealthy, 16
+3, Unhealthy, 52
+3, Very unhealthy, 62
+3, Hazardous, 63
+3, Extremely hazardous, 128
