@@ -1,15 +1,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #define MAX_LINE_LENGTH 256
 
 int sensor_count = 0;
+int duration;
 
 // Task 2.1
 void filterOutliers(char *dataFilename) {
     FILE *dataFile = fopen(dataFilename, "r");
     FILE *outliersFile = fopen("dust_outlier.csv", "w");
+
+    int durationArr[2];
+
 
     if (dataFile == NULL || outliersFile == NULL) {
         printf("Error 01: input file not found or not accessible\n");
@@ -21,8 +26,9 @@ void filterOutliers(char *dataFilename) {
     char line[MAX_LINE_LENGTH];
     int lineCount = 0;
     int numOutliers = 0;
-
+    time_t timeArr[3];
     while (fgets(line, sizeof(line), dataFile) != NULL) {
+
         lineCount++;
 
         // Skip header line
@@ -31,13 +37,23 @@ void filterOutliers(char *dataFilename) {
         }
 
         char idStr[10];
-        char time[20];
+        char time_[20];
         char valueStr[10];
 
-        sscanf(line, "%[^,],%[^,],%[^,\n]", idStr, time, valueStr);
+        sscanf(line, "%[^,],%[^,],%[^,\n]", idStr, time_, valueStr);
+
+        if (lineCount == 2) {
+            int hour;
+            sscanf(time_, "%*d:%*d:%*d %d", &hour);
+            durationArr[0] = hour;
+        } else if (lineCount > 2){
+            int hour;
+            sscanf(time_, "%*d:%*d:%*d %d", &hour);
+            durationArr[1] = hour;
+        }
 
         // Check if any field is blank
-        if (idStr[0] == '\0' || time[0] == '\0' || valueStr[0] == '\0') {
+        if (idStr[0] == '\0' || time_[0] == '\0' || valueStr[0] == '\0') {
             printf("Error 04: data is missing at line %d\n", lineCount);
             continue;
         }
@@ -56,11 +72,11 @@ void filterOutliers(char *dataFilename) {
 
         // Check if value is an outlier
         if (value < 5.0 || value > 550.5) {
-            fprintf(outliersFile, "%s,%s,%s\n", idStr, time, valueStr);
+            fprintf(outliersFile, "%s,%s,%s\n", idStr, time_, valueStr);
             numOutliers++;
         }
     }
-
+    duration = durationArr[1] - durationArr[0];
     fprintf(outliersFile, "number of outliers: %d\n", numOutliers); //Sao mày ko lên trên đầu được :(
 
     fclose(dataFile);
@@ -244,7 +260,8 @@ void processSensorData(char *dataFilename) {
         fprintf(summaryFile, "%d, max, %s, %.1f\n", i, timeData[i][1], sensorStat[i][1]);
         fprintf(summaryFile, "%d, min, %s, %.1f\n", i, timeData[i][0], sensorStat[i][0]);
         float mean = sensorStat[i][2] / sensorStat[i][3];
-        fprintf(summaryFile, "%d, mean, 10:00:00, %.1f\n", i, mean);
+
+        fprintf(summaryFile, "%d, mean, %d:00:00, %.1f\n", i, duration, mean);
     }
     fclose(summaryFile);
     printf("INPUT DESC HERE. Results stored in 'dust_summary.csv'.\n");
