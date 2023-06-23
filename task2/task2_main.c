@@ -53,7 +53,7 @@ void filterOutliers(char *dataFilename)
         // Check if id is valid
         if (id <= 0)
         {
-            printf("Error 04: data is missing or invalid at line %d\n", lineCount);
+            printf("Error 04: data is missing at line %d\n", lineCount);
             continue;
         }
 
@@ -73,10 +73,13 @@ void filterOutliers(char *dataFilename)
 }
 
 // Task 2.2
+
+//AQI calculating function by using concentration level
 double AQIcalculating(double concentration, double breakpointLow, double breakpointHigh, double indexLow, double indexHigh)
     {
         return ((indexHigh - indexLow) / (breakpointHigh - breakpointLow)) * (concentration - breakpointLow) + indexLow;
     }
+
 void calculateAQIFromFile(char *dataFilename)
 {
     FILE *dataFile = fopen(dataFilename, "r");
@@ -127,7 +130,7 @@ void calculateAQIFromFile(char *dataFilename)
             continue;
         }
 
-        // Validate data
+        // Check of data is validated
         if (value < 5.0 || value > 550.5)
         {
             continue;
@@ -180,7 +183,8 @@ void calculateAQIFromFile(char *dataFilename)
     fclose(aqiFile);
     printf("AQI calculation completed. Results stored in 'dust_aqi.csv'.\n");
 }
-// Task 2.3 - Task này sai toét
+
+// Task 2.3
 void processSensorData(char *dataFilename)
 {
     FILE *dataFile = fopen(dataFilename, "r");
@@ -238,19 +242,16 @@ void processSensorData(char *dataFilename)
         // Check if id is valid
         if (id <= 0)
         {
-            printf("Error 04: data is missing or invalid at line %d\n", lineCount);
+            printf("Error 04: data is missing at line %d\n", lineCount);
             continue;
         }
 
-        // Validate data
+        // Check of data is validated
         if (value < 5.0 || value > 550.5)
         {
             continue;
         }
-
-        // maxValues[id - 1] = value > maxValues[id - 1] ? value : maxValues[id - 1];
-        // minValues[id - 1] = value < minValues[id - 1] ? value : minValues[id - 1];
-
+        
         sumValues[id - 1] += value;
         countValues[id - 1]++;
         numsensor = id > numsensor ? id : numsensor;
@@ -263,10 +264,6 @@ void processSensorData(char *dataFilename)
             strcpy(minTime[id - 1], time);
         }
 
-        // // Write max, min, and mean to the summary file
-        // fprintf(summaryFile, "%s, max, %s, %.1f\n", idStr, time, maxValues[id - 1]);
-        // fprintf(summaryFile, "%s, min, %s, %.1f\n", idStr, time, minValues[id - 1]);
-        // fprintf(summaryFile, "%s, mean, 10:00:00, %.1f\n", idStr, sumValues[id - 1] / countValues[id - 1]);
     }
     for (int i = 1; i <= numsensor; i++) {
         // Write max, min, and mean to the summary file
@@ -280,138 +277,138 @@ void processSensorData(char *dataFilename)
 
     fclose(dataFile);
     fclose(summaryFile);
+    printf("Pollution summary values completed. Results stored in 'dust_summary.csv'.\n");
 }
 
-// Task 2.4
+//Task 2.4
 
-// void calculatePollutionStatistics(char *dataFilename)
-// {
-//     FILE *dataFile = fopen(dataFilename, "r");
-//     FILE *statisticsFile = fopen("dust_statistics.csv", "w");
+void calculatePollutionStatistics(char *dataFilename)
+{
+    FILE *dataFile = fopen(dataFilename, "r");
+    FILE *statisticsFile = fopen("dust_statistics.csv", "w");
 
-//     // Number of conditions hard-coded
-//     int condition_count = 7;
+    // Number of conditions hard-coded
+    int condition_count = 7;
 
-//     if (dataFile == NULL || statisticsFile == NULL)
-//     {
-//         dataFile = fopen("./dust_aqi.csv", "r");
-//         printf("Error: Input file not found or not accessible.\n");
-//         // return;
-//     }
+    if (dataFile == NULL || statisticsFile == NULL)
+    {
+        dataFile = fopen("./dust_aqi.csv", "r");
+        printf("Error: Input file not found or not accessible.\n");
+        // return;
+    }
 
-//     // Create an array to store the pollution levels for each sensor
+    // Create an array to store the pollution levels for each sensor
 
-//     char line[MAX_LINE_LENGTH];
-//     int lineCount = 0;
-//     char aqi_level[7][20] = {
-//         "Good", "Moderate", "Slightly unhealthy", "Unhealthy", "Very unhealthy", "Hazardous", "Extremely hazardous"};
+    char line[MAX_LINE_LENGTH];
+    int lineCount = 0;
+    char aqi_level[7][20] = {
+        "Good", "Moderate", "Slightly unhealthy", "Unhealthy", "Very unhealthy", "Hazardous", "Extremely hazardous"};
 
-//     int limit = 10000; // maximum sensors
-//     int dataMatrix[limit][7];
-//     int visited[limit];
+    int limit = 10000; // maximum sensors
+    int (*dataMatrix)[limit][7];
+    int visited[limit];
 
-//     /*
-//     Lưu vào data Matrix. Với mỗi giá trị ở tọa độ `i` `j` 
-//     sẽ chứa thông tin về số lượng lượt appear của level `j` của chỉ số `i`
-//     e.g dataMatrix[10][2] sẽ chứa số lần "Moderate" xuất hiện với sensor 10
-//     */
+    /*
+    Lưu vào data Matrix. Với mỗi giá trị ở tọa độ `i` `j` 
+    sẽ chứa thông tin về số lượng lượt appear của level `j` của chỉ số `i`
+    e.g dataMatrix[10][2] sẽ chứa số lần "Moderate" xuất hiện với sensor 10
+    */
      
 
-//     lineCount = 0;
-//     while (fgets(line, sizeof(line), dataFile) != NULL)
-//     {
-//         lineCount++;
+    lineCount = 0;
+    while (fgets(line, sizeof(line), dataFile) != NULL)
+    {
+        lineCount++;
 
-//         // Skip header line
-//         if (line[0] == 'i')
-//         {
-//             continue;
-//         }
+        // Skip header line
+        if (line[0] == 'i')
+        {
+            continue;
+        }
 
-//         char idStr[10];
-//         char time[20];
-//         char valueStr[10];
+        char idStr[10];
+        char time[20];
+        char valueStr[10];
 
-//         sscanf(line, "%[^,],%[^,],%[^,\n]", idStr, time, valueStr);
+        sscanf(line, "%[^,],%[^,],%[^,\n]", idStr, time, valueStr);
 
-//         // Check if any field is blank. Lặp lại 2.1 check outlier.
-//         if (idStr[0] == '\0' || time[0] == '\0' || valueStr[0] == '\0')
-//         {
-//             printf("Error 04: Data is missing at line %d\n", lineCount);
-//             continue;
-//         }
+        // Check if any field is blank. Lặp lại 2.1 check outlier.
+        if (idStr[0] == '\0' || time[0] == '\0' || valueStr[0] == '\0')
+        {
+            printf("Error 04: Data is missing at line %d\n", lineCount);
+            continue;
+        }
 
-//         int id = atoi(idStr);
-//         float value = atof(valueStr);
+        int id = atoi(idStr);
+        float value = atof(valueStr);
 
-//         // Check if id is valid
-//         if (id <= 0)
-//         {
-//             printf("Error 04: Data is missing or invalid at line %d\n", lineCount);
-//             continue;
-//         }
+        // Check if id is valid
+        if (id <= 0)
+        {
+            printf("Error 04: Data is missing or invalid at line %d\n", lineCount);
+            continue;
+        }
 
-//         // Validate data
-//         if (value < 5.0 || value > 550.5)
-//         {
-//             continue;
-//         }
+        // Validate data
+        if (value < 5.0 || value > 550.5)
+        {
+            continue;
+        }
 
-//         // Increment the corresponding pollution level for the current sensor. Lặp lại 2.2 do input là file gốc.
-//         if (value >= 0 && value <= 12)
-//         {
-//             dataMatrix[id][0]++;
-//         }
-//         else if (value > 12 && value <= 35.4)
-//         {
-//             dataMatrix[id][1]++;
-//         }
-//         else if (value > 35.4 && value <= 55.4)
-//         {
-//             dataMatrix[id][2]++;
-//         }
-//         else if (value > 55.4 && value <= 150.4)
-//         {
-//             dataMatrix[id][3]++;
-//         }
-//         else if (value > 150.4 && value <= 250.4)
-//         {
-//             dataMatrix[id][4]++;
-//         }
-//         else if (value > 250.4 && value <= 350.4)
-//         {
-//             dataMatrix[id][5]++;
-//         }
-//         else if (value > 350.4 && value <= 550.5)
-//         {
-//             dataMatrix[id][6]++;
-//         }
-//         visited[id] = 1;
-//     }
+        // Increment the corresponding pollution level for the current sensor. Lặp lại 2.2 do input là file gốc.
+        if (value >= 0 && value <= 12)
+        {
+            (*dataMatrix)[id][0]++;
+        }
+        else if (value > 12 && value <= 35.4)
+        {
+            (*dataMatrix)[id][1]++;
+        }
+        else if (value > 35.4 && value <= 55.4)
+        {
+            (*dataMatrix)[id][2]++;
+        }
+        else if (value > 55.4 && value <= 150.4)
+        {
+            (*dataMatrix)[id][3]++;
+        }
+        else if (value > 150.4 && value <= 250.4)
+        {
+            (*dataMatrix)[id][4]++;
+        }
+        else if (value > 250.4 && value <= 350.4)
+        {
+            (*dataMatrix)[id][5]++;
+        }
+        else if (value > 350.4 && value <= 550.5)
+        {
+            (*dataMatrix)[id][6]++;
+        }
+        visited[id] = 1;
+    }
 
-//     fclose(dataFile);
+    fclose(dataFile);
 
-//     // Write the pollution duration to the statistics file
-//     fprintf(statisticsFile, "id, pollution, duration\n");
+    // Write the pollution duration to the statistics file
+    fprintf(statisticsFile, "id, pollution, duration\n");
 
-//     for (int i = 0; i < limit; i++)
-//     {
-//         if (visited[i] == 1)
-//         {
-            
-//             int duration_arr = dataMatrix[i];
-//             for (size_t j = 0; j < 7; j++)
-//             {
-//                 int duration = dataMatrix[i][j];
-//                 fprintf(statisticsFile, "%d, %s, %d\n", i, aqi_level[j], duration);
-//             }
-//         }
-//     }
+    for (int i = 0; i < limit; i++)
+    {
+        if (visited[i] == 1)
+        {
+            int duration_arr = (*dataMatrix)[i][0];            
+            for (size_t j = 0; j < 7; j++)
+            {
+                int duration = (*dataMatrix)[i][j];
+                fprintf(statisticsFile, "%d, %s, %d\n", i, aqi_level[j], duration);
+            }
+        }
+    }
 
-//     fclose(statisticsFile);
+    fclose(statisticsFile);
 
-//     printf("Pollution duration calculation completed. Results stored in 'dust_statistics.csv'.\n");
-// }
+    printf("Pollution duration calculation completed. Results stored in 'dust_statistics.csv'.\n");
+}
 
 int main(int argc, char *argv[])
 {
@@ -428,6 +425,6 @@ int main(int argc, char *argv[])
     filterOutliers(dataFilename);
     calculateAQIFromFile(dataFilename);
     processSensorData(dataFilename);
-    // calculatePollutionStatistics(dataFilename);
+    calculatePollutionStatistics(dataFilename);
     return 0;
 }
