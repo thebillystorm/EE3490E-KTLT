@@ -150,13 +150,14 @@ void calculateAQIFromFile(char *dataFilename)
     // sensorStat[id][1] : num of records
     float sensorStat[limit][2];
     int currentHour[limit];
+    // extract date
+    char currentDate[limit][11];
     for (int i = 0; i < limit; ++i) {
         sensorStat[i][0] = 0;
         sensorStat[i][1] = 0;
         currentHour[i] = -1;
     }
-    // extract date
-    char date[11];
+    
     while (fgets(line, sizeof(line), dataFile) != NULL) {
         lineCount++;
 
@@ -191,20 +192,22 @@ void calculateAQIFromFile(char *dataFilename)
         {
             continue;
         }
-
+        
         int hour;
         sscanf(time, "%*d:%*d:%*d %d", &hour);
+        // first value of each sensor
         if (currentHour[id] == -1) {
             currentHour[id] = hour;
             sensorStat[id][0] = value;
             sensorStat[id][1] = 1;
+            //update date
+            strncpy(currentDate[id], time, 10);
+            currentDate[id][10] = '\0';
             continue;
         }
         if (hour != currentHour[id]) {
             
             float avg = sensorStat[id][0]/sensorStat[id][1];
-            strncpy(date, time, 10);
-            date[10] = '\0';
            // printf("%d,%s %d:00:00,%.1f\n", id,date,currentHour[id], avg);
 
             //Calculate AQI and pollution level
@@ -213,8 +216,11 @@ void calculateAQIFromFile(char *dataFilename)
 
             pollutionLevelCalculating(avg, &aqi, &pollution);
             
-            fprintf(aqiFile, "%d,%s %02d:00:00,%.1f,%d,%s\n", id,date,currentHour[id], avg, aqi, pollution);
+            fprintf(aqiFile, "%d,%s %02d:00:00,%.1f,%d,%s\n", id,currentDate[id],currentHour[id], avg, aqi, pollution);
 
+            //update date
+            strncpy(currentDate[id], time, 10);
+            currentDate[id][10] = '\0';
 
             sensorStat[id][0] = value;
             sensorStat[id][1] = 1;
@@ -234,7 +240,7 @@ void calculateAQIFromFile(char *dataFilename)
         int aqi;
         const char *pollution;
         pollutionLevelCalculating(avg, &aqi, &pollution);    
-        fprintf(aqiFile, "%d,%s %02d:00:00,%.1f,%d,%s\n", i,date,currentHour[i], avg, aqi, pollution);
+        fprintf(aqiFile, "%d,%s %02d:00:00,%.1f,%d,%s\n", i,currentDate[i],currentHour[i], avg, aqi, pollution);
     }
 
     fclose(dataFile);
