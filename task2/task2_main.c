@@ -213,15 +213,12 @@ void processSensorData(char *dataFilename) {
     float sensorStat[limit][4];
     for (int i = 0; i < limit; ++i) {
         sensorStat[i][0] = 600;
+        sensorStat[i][1] = 1;
+        sensorStat[i][2] = 0;
+        sensorStat[i][3] = 0;
     }
 
     char timeData[limit][2][20];
-
-    // Update maximum, minimum, and sum for each sensor
-    float maxValues[10] = {0};
-    float minValues[10] = {550.5};
-    float sumValues[10] = {0};
-    int countValues[10] = {0};
 
     while (fgets(line, sizeof(line), dataFile) != NULL) {
         lineCount++;
@@ -260,7 +257,8 @@ void processSensorData(char *dataFilename) {
             if (value < sensorStat[id][0]) {
                 sensorStat[id][0] = value;
                 strcpy(timeData[id][0], time);
-            } else if (value > sensorStat[id][1]) {
+            } 
+            if (value > sensorStat[id][1]) {
                 sensorStat[id][1] = value;
                 strcpy(timeData[id][1], time);
             }
