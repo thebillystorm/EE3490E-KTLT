@@ -103,6 +103,31 @@ double AQIcalculating(double concentration, double breakpointLow, double breakpo
         return ((indexHigh - indexLow) / (breakpointHigh - breakpointLow)) * (concentration - breakpointLow) + indexLow;
     }
 
+void pollutionLevelCalculating(float avg, int* aqi, const char** pollution) {
+    if (avg >= 0 && avg < 12) {
+        *aqi = AQIcalculating(avg, 0, 12, 0, 50);
+        *pollution = "Good";
+    } else if (avg >= 12 && avg < 35.5) {
+        *aqi = AQIcalculating(avg, 12, 35.5, 51, 100);
+        *pollution = "Moderate";
+    } else if (avg >= 35.5 && avg < 55.5) {
+        *aqi = AQIcalculating(avg, 35.5, 55.5, 101, 150);
+        *pollution = "Slightly unhealthy";
+    } else if (avg >= 55.5 && avg < 150.5) {
+        *aqi = AQIcalculating(avg, 55.5, 150.5, 151, 200);
+        *pollution = "Unhealthy";
+    } else if (avg >= 150.5 && avg < 250.5) {
+        *aqi = AQIcalculating(avg, 150.5, 250.5, 201, 300);
+        *pollution = "Very unhealthy";
+    } else if (avg >= 250.5 && avg < 350.5) {
+        *aqi = AQIcalculating(avg, 250.5, 350.5, 301, 400);
+        *pollution = "Hazardous";
+    } else {
+        *aqi = AQIcalculating(avg, 350.5, 550.5, 401, 500);
+        *pollution = "Extremely hazardous";
+    }
+}
+
 void calculateAQIFromFile(char *dataFilename)
 {
     FILE *dataFile = fopen(dataFilename, "r");
@@ -186,28 +211,7 @@ void calculateAQIFromFile(char *dataFilename)
             int aqi;
             const char *pollution;
 
-            if (avg >= 0 && avg < 12) {
-                aqi = AQIcalculating(avg, 0, 12, 0, 50);
-                pollution = "Good";
-            } else if (avg >= 12 && avg < 35.5) {
-                aqi = AQIcalculating(avg, 12, 35.5, 51, 100);
-                pollution = "Moderate";
-            } else if (avg >= 35.5 && avg < 55.5) {
-                aqi = AQIcalculating(avg, 35.5, 55.5, 101, 150);
-                pollution = "Slightly unhealthy";
-            } else if (avg >= 55.5 && avg < 150.5) {
-                aqi = AQIcalculating(avg, 55.5, 150.5, 151, 200);
-                pollution = "Unhealthy";
-            } else if (avg >= 150.5 && avg < 250.5) {
-                aqi = AQIcalculating(avg, 150.5, 250.5, 201, 300);
-                pollution = "Very unhealthy";
-            } else if (avg >= 250.5 && avg < 350.5) {
-                aqi = AQIcalculating(avg, 250.5, 350.5, 301, 400);
-                pollution = "Hazardous";
-            } else {
-                aqi = AQIcalculating(avg, 350.5, 550.5, 401, 500);
-                pollution = "Extremely hazardous";
-            }
+            pollutionLevelCalculating(avg, &aqi, &pollution);
             
             fprintf(aqiFile, "%d,%s %02d:00:00,%.1f,%d,%s\n", id,date,currentHour[id], avg, aqi, pollution);
 
@@ -227,33 +231,10 @@ void calculateAQIFromFile(char *dataFilename)
     for (int i = 1; i < limit; i++) {
         float avg = sensorStat[i][0]/sensorStat[i][1];
         //Calculate AQI and pollution level
-            int aqi;
-            const char *pollution;
-
-            if (avg >= 0 && avg < 12) {
-                aqi = AQIcalculating(avg, 0, 12, 0, 50);
-                pollution = "Good";
-            } else if (avg >= 12 && avg < 35.5) {
-                aqi = AQIcalculating(avg, 12, 35.5, 51, 100);
-                pollution = "Moderate";
-            } else if (avg >= 35.5 && avg < 55.5) {
-                aqi = AQIcalculating(avg, 35.5, 55.5, 101, 150);
-                pollution = "Slightly unhealthy";
-            } else if (avg >= 55.5 && avg < 150.5) {
-                aqi = AQIcalculating(avg, 55.5, 150.5, 151, 200);
-                pollution = "Unhealthy";
-            } else if (avg >= 150.5 && avg < 250.5) {
-                aqi = AQIcalculating(avg, 150.5, 250.5, 201, 300);
-                pollution = "Very unhealthy";
-            } else if (avg >= 250.5 && avg < 350.5) {
-                aqi = AQIcalculating(avg, 250.5, 350.5, 301, 400);
-                pollution = "Hazardous";
-            } else {
-                aqi = AQIcalculating(avg, 350.5, 550.5, 401, 500);
-                pollution = "Extremely hazardous";
-            }
-            
-            fprintf(aqiFile, "%d,%s %02d:00:00,%.1f,%d,%s\n", i,date,currentHour[i], avg, aqi, pollution);
+        int aqi;
+        const char *pollution;
+        pollutionLevelCalculating(avg, &aqi, &pollution);    
+        fprintf(aqiFile, "%d,%s %02d:00:00,%.1f,%d,%s\n", i,date,currentHour[i], avg, aqi, pollution);
     }
 
     fclose(dataFile);
