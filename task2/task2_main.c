@@ -190,12 +190,16 @@ void calculateAQIFromFile(char *dataFilename)
         // Check of data is validated
         if (value < 5.0 || value > 550.5)
         {
-            continue;
+            value = 0;
         }
         
         int hour;
         sscanf(time, "%*d:%*d:%*d %d", &hour);
         // first value of each sensor
+        // Case: First value of a sensor is outlier
+        if (currentHour[id] == -1 && value == 0) {
+            continue;
+        }
         if (currentHour[id] == -1) {
             currentHour[id] = hour;
             sensorStat[id][0] = value;
@@ -223,11 +227,11 @@ void calculateAQIFromFile(char *dataFilename)
             currentDate[id][10] = '\0';
 
             sensorStat[id][0] = value;
-            sensorStat[id][1] = 1;
+            sensorStat[id][1] = value == 0 ? 0 : 1;
             currentHour[id] = hour;
         } else {
             sensorStat[id][0] += value;
-            sensorStat[id][1] ++;
+            sensorStat[id][1] += value == 0 ? 0 : 1;
         }
         
     }
