@@ -349,24 +349,19 @@ void calculatePollutionStatistics(char *dataFilename) {
     FILE *dataFile = fopen(dataFilename, "r");
     FILE *statisticsFile = fopen("dust_statistics.csv", "w");
 
-    // Number of conditions hard-coded
-    int condition_count = 7;
-
     if (dataFile == NULL || statisticsFile == NULL) {
         dataFile = fopen("./dust_aqi.csv", "r");
         printf("Error: Input file not found or not accessible.\n");
-        // return;
     }
 
     // Create an array to store the pollution levels for each sensor
-
     char line[MAX_LINE_LENGTH];
     int lineCount = 0;
     char aqi_level[7][20] = {
             "Good", "Moderate", "Slightly unhealthy", "Unhealthy", "Very unhealthy", "Hazardous",
             "Extremely hazardous"};
 
-    int limit = sensor_count; // maximum sensors
+    int limit = sensor_count + 1; // maximum sensors
     int dataMatrix[limit][7];
 
     for (int i = 0; i < limit; ++i) {
@@ -374,7 +369,9 @@ void calculatePollutionStatistics(char *dataFilename) {
             dataMatrix[i][j] = 0;
         }
     }
-    int visited[limit];
+    int visited[limit  + 1];
+//    printf("Limit:  %d \n", limit);
+//    printf("%d, %f, %s\n", id, value, time);
 
     /*
     Lưu vào data Matrix. Với mỗi giá trị ở tọa độ `i` `j` 
@@ -459,7 +456,6 @@ void calculatePollutionStatistics(char *dataFilename) {
         if (visited[i] == 1) {
             for (size_t j = 0; j < 7; j++) {
                 int duration = dataMatrix[i][j];
-                printf("%d, %s, %d\n", i, aqi_level[j], duration);
                 fprintf(statisticsFile, "%d, %s, %d\n", i, aqi_level[j], duration);
             }
         }
@@ -485,6 +481,6 @@ int main(int argc, char *argv[])
     filterOutliers(dataFilename);
     calculateAQIFromFile(dataFilename);
     processSensorData(dataFilename);
-    calculatePollutionStatistics(dataFilename);
+    calculatePollutionStatistics("./dust_aqi.csv");
     return 0;
 }
