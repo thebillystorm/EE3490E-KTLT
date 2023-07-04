@@ -201,7 +201,7 @@ void processSensorData(char* dataFilename) {
         sensor->sum += value;
         sensor->count++;
     }
-//Task 2.4
+
     // Write summary to the output file
     fprintf(summaryFile, "id,parameter,time,value\n");
 
@@ -219,6 +219,8 @@ void processSensorData(char* dataFilename) {
     fclose(dataFile);
     fclose(summaryFile);
 }
+//Task 2.4
+
 
 int main(int argc, char* argv[]) {
     

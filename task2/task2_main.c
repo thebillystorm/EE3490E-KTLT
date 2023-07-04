@@ -307,6 +307,12 @@ void calculatePollutionStatistics(char *dataFilename) {
 
     int limit = sensor_count; // maximum sensors
     int dataMatrix[limit][7];
+
+    for (int i = 0; i < limit; ++i) {
+        for (int j = 0; j < 7; ++j) {
+            dataMatrix[i][j] = 0;
+        }
+    }
     int visited[limit];
 
     /*
@@ -392,6 +398,7 @@ void calculatePollutionStatistics(char *dataFilename) {
         if (visited[i] == 1) {
             for (size_t j = 0; j < 7; j++) {
                 int duration = dataMatrix[i][j];
+                printf("%d, %s, %d\n", i, aqi_level[j], duration);
                 fprintf(statisticsFile, "%d, %s, %d\n", i, aqi_level[j], duration);
             }
         }
