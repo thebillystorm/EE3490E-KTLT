@@ -103,6 +103,31 @@ double AQIcalculating(double concentration, double breakpointLow, double breakpo
         return ((indexHigh - indexLow) / (breakpointHigh - breakpointLow)) * (concentration - breakpointLow) + indexLow;
     }
 
+void pollutionLevelCalculating(float avg, int* aqi, const char** pollution) {
+    if (avg >= 0 && avg < 12) {
+        *aqi = AQIcalculating(avg, 0, 12, 0, 50);
+        *pollution = "Good";
+    } else if (avg >= 12 && avg < 35.5) {
+        *aqi = AQIcalculating(avg, 12, 35.5, 51, 100);
+        *pollution = "Moderate";
+    } else if (avg >= 35.5 && avg < 55.5) {
+        *aqi = AQIcalculating(avg, 35.5, 55.5, 101, 150);
+        *pollution = "Slightly unhealthy";
+    } else if (avg >= 55.5 && avg < 150.5) {
+        *aqi = AQIcalculating(avg, 55.5, 150.5, 151, 200);
+        *pollution = "Unhealthy";
+    } else if (avg >= 150.5 && avg < 250.5) {
+        *aqi = AQIcalculating(avg, 150.5, 250.5, 201, 300);
+        *pollution = "Very unhealthy";
+    } else if (avg >= 250.5 && avg < 350.5) {
+        *aqi = AQIcalculating(avg, 250.5, 350.5, 301, 400);
+        *pollution = "Hazardous";
+    } else {
+        *aqi = AQIcalculating(avg, 350.5, 550.5, 401, 500);
+        *pollution = "Extremely hazardous";
+    }
+}
+
 void calculateAQIFromFile(char *dataFilename)
 {
     FILE *dataFile = fopen(dataFilename, "r");
@@ -119,6 +144,20 @@ void calculateAQIFromFile(char *dataFilename)
     char line[MAX_LINE_LENGTH];
     int lineCount = 0;
 
+    int limit = sensor_count + 1;
+    /// declare temp data : 
+    // sensorStat[id][0] : total value
+    // sensorStat[id][1] : num of records
+    float sensorStat[limit][2];
+    int currentHour[limit];
+    // extract date
+    char currentDate[limit][11];
+    for (int i = 0; i < limit; ++i) {
+        sensorStat[i][0] = 0;
+        sensorStat[i][1] = 0;
+        currentHour[i] = -1;
+    }
+    
     while (fgets(line, sizeof(line), dataFile) != NULL) {
         lineCount++;
 
@@ -151,37 +190,61 @@ void calculateAQIFromFile(char *dataFilename)
         // Check of data is validated
         if (value < 5.0 || value > 550.5)
         {
+            value = 0;
+        }
+        
+        int hour;
+        sscanf(time, "%*d:%*d:%*d %d", &hour);
+        // first value of each sensor
+        // Case: First value of a sensor is outlier
+        if (currentHour[id] == -1 && value == 0) {
             continue;
         }
+        if (currentHour[id] == -1) {
+            currentHour[id] = hour;
+            sensorStat[id][0] = value;
+            sensorStat[id][1] = 1;
+            //update date
+            strncpy(currentDate[id], time, 10);
+            currentDate[id][10] = '\0';
+            continue;
+        }
+        if (hour != currentHour[id]) {
+            
+            float avg = sensorStat[id][0]/sensorStat[id][1];
+           // printf("%d,%s %d:00:00,%.1f\n", id,date,currentHour[id], avg);
 
-        // Calculate AQI and pollution level
+            //Calculate AQI and pollution level
+            int aqi;
+            const char *pollution;
+
+            pollutionLevelCalculating(avg, &aqi, &pollution);
+            
+            fprintf(aqiFile, "%d,%s %02d:00:00,%.1f,%d,%s\n", id,currentDate[id],currentHour[id], avg, aqi, pollution);
+
+            //update date
+            strncpy(currentDate[id], time, 10);
+            currentDate[id][10] = '\0';
+
+            sensorStat[id][0] = value;
+            sensorStat[id][1] = value == 0 ? 0 : 1;
+            currentHour[id] = hour;
+        } else {
+            sensorStat[id][0] += value;
+            sensorStat[id][1] += value == 0 ? 0 : 1;
+        }
+        
+    }
+
+    //last hour
+    //
+    for (int i = 1; i < limit; i++) {
+        float avg = sensorStat[i][0]/sensorStat[i][1];
+        //Calculate AQI and pollution level
         int aqi;
         const char *pollution;
-
-        if (value >= 0 && value < 12) {
-            aqi = AQIcalculating(value, 0, 12, 0, 50);
-            pollution = "Good";
-        } else if (value >= 12 && value < 35.5) {
-            aqi = AQIcalculating(value, 12, 35.5, 51, 100);
-            pollution = "Moderate";
-        } else if (value >= 35.5 && value < 55.5) {
-            aqi = AQIcalculating(value, 35.5, 55.5, 101, 150);
-            pollution = "Slightly unhealthy";
-        } else if (value >= 55.5 && value < 150.5) {
-            aqi = AQIcalculating(value, 55.5, 150.5, 151, 200);
-            pollution = "Unhealthy";
-        } else if (value >= 150.5 && value < 250.5) {
-            aqi = AQIcalculating(value, 150.5, 250.5, 201, 300);
-            pollution = "Very unhealthy";
-        } else if (value >= 250.5 && value < 350.5) {
-            aqi = AQIcalculating(value, 250.5, 350.5, 301, 400);
-            pollution = "Hazardous";
-        } else {
-            aqi = AQIcalculating(value, 350.5, 550.5, 401, 500);
-            pollution = "Extremely hazardous";
-        }
-
-        fprintf(aqiFile, "%s,%s,%s,%d,%s\n", idStr, time, valueStr, aqi, pollution);
+        pollutionLevelCalculating(avg, &aqi, &pollution);    
+        fprintf(aqiFile, "%d,%s %02d:00:00,%.1f,%d,%s\n", i,currentDate[i],currentHour[i], avg, aqi, pollution);
     }
 
     fclose(dataFile);
@@ -213,15 +276,12 @@ void processSensorData(char *dataFilename) {
     float sensorStat[limit][4];
     for (int i = 0; i < limit; ++i) {
         sensorStat[i][0] = 600;
+        sensorStat[i][1] = 1;
+        sensorStat[i][2] = 0;
+        sensorStat[i][3] = 0;
     }
 
     char timeData[limit][2][20];
-
-    // Update maximum, minimum, and sum for each sensor
-    float maxValues[10] = {0};
-    float minValues[10] = {550.5};
-    float sumValues[10] = {0};
-    int countValues[10] = {0};
 
     while (fgets(line, sizeof(line), dataFile) != NULL) {
         lineCount++;
@@ -260,7 +320,8 @@ void processSensorData(char *dataFilename) {
             if (value < sensorStat[id][0]) {
                 sensorStat[id][0] = value;
                 strcpy(timeData[id][0], time);
-            } else if (value > sensorStat[id][1]) {
+            } 
+            if (value > sensorStat[id][1]) {
                 sensorStat[id][1] = value;
                 strcpy(timeData[id][1], time);
             }
