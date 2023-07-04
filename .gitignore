@@ -9,3 +9,8 @@
 
 .idea
 cmake-build-debug
+
+.DS_Store
+
+/test/*
+/test_files_task2_rev2
