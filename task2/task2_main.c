@@ -87,7 +87,13 @@ void filterOutliers(char *dataFilename) {
             numOutliers++;
         }
     }
-    duration = durationArr[1] - durationArr[0];
+
+    if (durationArr[1] - durationArr[0] < 0) {
+        duration = 24 + durationArr[1] - durationArr[0];
+    } else {
+        duration = durationArr[1] - durationArr[0];
+    }
+    printf("DURATION: %d \n", duration);
     fprintf(outliersFile, "number of outliers: %d\n", numOutliers); //Sao mày ko lên trên đầu được :(
 
     fclose(dataFile);
