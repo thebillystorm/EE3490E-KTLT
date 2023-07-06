@@ -25,6 +25,8 @@ void filterOutliers(char *dataFilename) {
 
     int durationHourArr[2];
     int durationDateArr[2];
+    int durationMonthArr[2];
+    int durationYearArr[2];
 
 
     if (dataFile == NULL || outliersFile == NULL) {
@@ -53,19 +55,20 @@ void filterOutliers(char *dataFilename) {
 
         //Possible error: Không dùng timestamp, next ngày là chết
         sscanf(line, "%[^,],%[^,],%[^,\n]", idStr, time_, valueStr);
-
+        int hour, date, month, year;
         if (lineCount == 2) {
-            int hour;
-            int date;
-            sscanf(time_, "%*d:%*d:%d %d", &date, &hour);
+
+            sscanf(time_, "%d:%d:%d %d", &year, &month, &date, &hour);
             durationHourArr[0] = hour;
             durationDateArr[0] = date;
+            durationMonthArr[0] = month;
+            durationYearArr[0] = year;
         } else if (lineCount > 2) {
-            int hour;
-            int date;
-            sscanf(time_, "%*d:%*d:%d %d", &date,&hour);
+            sscanf(time_, "%d:%d:%d %d", &year, &month, &date, &hour);
             durationHourArr[1] = hour;
             durationDateArr[1] = date;
+            durationMonthArr[1] = month;
+            durationYearArr[1] = year;
         }
 
         // Check if any field is blank
@@ -93,14 +96,10 @@ void filterOutliers(char *dataFilename) {
         }
     }
 
-//    if (durationHourArr[1] - durationArr[0] < 0) {
-//        duration = 24 + durationArr[1] - durationArr[0];
-//    } else {
-//        duration = durationArr[1] - durationArr[0];
-//    }
-
-    printf("%d", durationDateArr[1]);
-    duration = ( durationDateArr[1] - durationDateArr[0] ) * 24 + ( durationHourArr[1] - durationHourArr[0] );
+    duration = (durationYearArr[1] - durationYearArr[0]) * 8760
+               + (durationMonthArr[1] - durationMonthArr[0]) * 24 * 30
+               + (durationDateArr[1] - durationDateArr[0]) * 24
+               + (durationHourArr[1] - durationHourArr[0]);
 
 
     printf("DURATION: %d \n", duration);
@@ -227,7 +226,6 @@ void calculateAQIFromFile(char *dataFilename) {
         if (hour != currentHour[id]) {
 
             float avg = sensorStat[id][0] / sensorStat[id][1];
-            // printf("%d,%s %d:00:00,%.1f\n", id,date,currentHour[id], avg);
 
             //Calculate AQI and pollution level
             int aqi;
