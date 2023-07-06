@@ -23,7 +23,8 @@ void filterOutliers(char *dataFilename) {
     FILE *dataFile = fopen(dataFilename, "r");
     FILE *outliersFile = fopen("dust_outlier.csv", "w");
 
-    int durationArr[2];
+    int durationHourArr[2];
+    int durationDateArr[2];
 
 
     if (dataFile == NULL || outliersFile == NULL) {
@@ -36,7 +37,7 @@ void filterOutliers(char *dataFilename) {
     char line[MAX_LINE_LENGTH];
     int lineCount = 0;
     int numOutliers = 0;
-    
+
     while (fgets(line, sizeof(line), dataFile) != NULL) {
 
         lineCount++;
@@ -49,17 +50,22 @@ void filterOutliers(char *dataFilename) {
         char idStr[10];
         char time_[20];
         char valueStr[10];
+
         //Possible error: Không dùng timestamp, next ngày là chết
         sscanf(line, "%[^,],%[^,],%[^,\n]", idStr, time_, valueStr);
 
         if (lineCount == 2) {
             int hour;
-            sscanf(time_, "%*d:%*d:%*d %d", &hour);
-            durationArr[0] = hour;
-        } else if (lineCount > 2){
+            int date;
+            sscanf(time_, "%*d:%*d:%d %d", &date, &hour);
+            durationHourArr[0] = hour;
+            durationDateArr[0] = date;
+        } else if (lineCount > 2) {
             int hour;
-            sscanf(time_, "%*d:%*d:%*d %d", &hour);
-            durationArr[1] = hour;
+            int date;
+            sscanf(time_, "%*d:%*d:%d %d", &date,&hour);
+            durationHourArr[1] = hour;
+            durationDateArr[1] = date;
         }
 
         // Check if any field is blank
@@ -75,8 +81,7 @@ void filterOutliers(char *dataFilename) {
         float value = atof(valueStr);
 
         // Check if id is valid
-        if (id <= 0)
-        {
+        if (id <= 0) {
             printf("Error 04: data is missing at line %d\n", lineCount);
             continue;
         }
@@ -88,11 +93,16 @@ void filterOutliers(char *dataFilename) {
         }
     }
 
-    if (durationArr[1] - durationArr[0] < 0) {
-        duration = 24 + durationArr[1] - durationArr[0];
-    } else {
-        duration = durationArr[1] - durationArr[0];
-    }
+//    if (durationHourArr[1] - durationArr[0] < 0) {
+//        duration = 24 + durationArr[1] - durationArr[0];
+//    } else {
+//        duration = durationArr[1] - durationArr[0];
+//    }
+
+    printf("%d", durationDateArr[1]);
+    duration = ( durationDateArr[1] - durationDateArr[0] ) * 24 + ( durationHourArr[1] - durationHourArr[0] );
+
+
     printf("DURATION: %d \n", duration);
     fprintf(outliersFile, "number of outliers: %d\n", numOutliers); //Sao mày ko lên trên đầu được :(
 
@@ -104,12 +114,12 @@ void filterOutliers(char *dataFilename) {
 // Task 2.2
 
 //AQI calculating function by using concentration level
-double AQIcalculating(double concentration, double breakpointLow, double breakpointHigh, double indexLow, double indexHigh)
-    {
-        return ((indexHigh - indexLow) / (breakpointHigh - breakpointLow)) * (concentration - breakpointLow) + indexLow;
-    }
+double
+AQIcalculating(double concentration, double breakpointLow, double breakpointHigh, double indexLow, double indexHigh) {
+    return ((indexHigh - indexLow) / (breakpointHigh - breakpointLow)) * (concentration - breakpointLow) + indexLow;
+}
 
-void pollutionLevelCalculating(float avg, int* aqi, const char** pollution) {
+void pollutionLevelCalculating(float avg, int *aqi, const char **pollution) {
     if (avg >= 0 && avg < 12) {
         *aqi = AQIcalculating(avg, 0, 12, 0, 50);
         *pollution = "Good";
@@ -134,8 +144,7 @@ void pollutionLevelCalculating(float avg, int* aqi, const char** pollution) {
     }
 }
 
-void calculateAQIFromFile(char *dataFilename)
-{
+void calculateAQIFromFile(char *dataFilename) {
     FILE *dataFile = fopen(dataFilename, "r");
     FILE *aqiFile = fopen("dust_aqi.csv", "w");
 
@@ -163,7 +172,7 @@ void calculateAQIFromFile(char *dataFilename)
         sensorStat[i][1] = 0;
         currentHour[i] = -1;
     }
-    
+
     while (fgets(line, sizeof(line), dataFile) != NULL) {
         lineCount++;
 
@@ -194,11 +203,11 @@ void calculateAQIFromFile(char *dataFilename)
         }
 
         // Check of data is validated
-        if (value < 5.0 || value > 550.5)
-        {
+        if (value < 5.0 || value > 550.5) {
             value = 0;
         }
-        
+
+
         int hour;
         sscanf(time, "%*d:%*d:%*d %d", &hour);
         // first value of each sensor
@@ -216,17 +225,18 @@ void calculateAQIFromFile(char *dataFilename)
             continue;
         }
         if (hour != currentHour[id]) {
-            
-            float avg = sensorStat[id][0]/sensorStat[id][1];
-           // printf("%d,%s %d:00:00,%.1f\n", id,date,currentHour[id], avg);
+
+            float avg = sensorStat[id][0] / sensorStat[id][1];
+            // printf("%d,%s %d:00:00,%.1f\n", id,date,currentHour[id], avg);
 
             //Calculate AQI and pollution level
             int aqi;
             const char *pollution;
 
             pollutionLevelCalculating(avg, &aqi, &pollution);
-            
-            fprintf(aqiFile, "%d,%s %02d:00:00,%.1f,%d,%s\n", id,currentDate[id],currentHour[id], avg, aqi, pollution);
+
+            fprintf(aqiFile, "%d,%s %02d:00:00,%.1f,%d,%s\n", id, currentDate[id], currentHour[id], avg, aqi,
+                    pollution);
 
             //update date
             strncpy(currentDate[id], time, 10);
@@ -239,18 +249,18 @@ void calculateAQIFromFile(char *dataFilename)
             sensorStat[id][0] += value;
             sensorStat[id][1] += value == 0 ? 0 : 1;
         }
-        
+
     }
 
     //last hour
     //
     for (int i = 1; i < limit; i++) {
-        float avg = sensorStat[i][0]/sensorStat[i][1];
+        float avg = sensorStat[i][0] / sensorStat[i][1];
         //Calculate AQI and pollution level
         int aqi;
         const char *pollution;
-        pollutionLevelCalculating(avg, &aqi, &pollution);    
-        fprintf(aqiFile, "%d,%s %02d:00:00,%.1f,%d,%s\n", i,currentDate[i],currentHour[i], avg, aqi, pollution);
+        pollutionLevelCalculating(avg, &aqi, &pollution);
+        fprintf(aqiFile, "%d,%s %02d:00:00,%.1f,%d,%s\n", i, currentDate[i], currentHour[i], avg, aqi, pollution);
     }
 
     fclose(dataFile);
@@ -312,21 +322,19 @@ void processSensorData(char *dataFilename) {
         float value = atof(valueStr);
 
         // Check if id is valid
-        if (id <= 0)
-        {
+        if (id <= 0) {
             printf("Error 04: data is missing at line %d\n", lineCount);
             continue;
         }
 
         // Check of data is validated
-        if (value < 5.0 || value > 550.5)
-        {
+        if (value < 5.0 || value > 550.5) {
             continue;
         } else {
             if (value < sensorStat[id][0]) {
                 sensorStat[id][0] = value;
                 strcpy(timeData[id][0], time);
-            } 
+            }
             if (value > sensorStat[id][1]) {
                 sensorStat[id][1] = value;
                 strcpy(timeData[id][1], time);
@@ -342,7 +350,7 @@ void processSensorData(char *dataFilename) {
         fprintf(summaryFile, "%d, max, %s, %.1f\n", i, timeData[i][1], sensorStat[i][1]);
         fprintf(summaryFile, "%d, min, %s, %.1f\n", i, timeData[i][0], sensorStat[i][0]);
         float mean = sensorStat[i][2] / sensorStat[i][3];
-        
+
         fprintf(summaryFile, "%d, mean, %d:00:00, %.1f\n", i, duration, mean);
     }
     fclose(summaryFile);
@@ -375,7 +383,7 @@ void calculatePollutionStatistics(char *dataFilename) {
             dataMatrix[i][j] = 0;
         }
     }
-    int visited[limit  + 1];
+    int visited[limit + 1];
 //    printf("Limit:  %d \n", limit);
 //    printf("%d, %f, %s\n", id, value, time);
 
@@ -422,32 +430,19 @@ void calculatePollutionStatistics(char *dataFilename) {
         }
 
         // Increment the corresponding pollution level for the current sensor. Lặp lại 2.2 do input là file gốc.
-        if (value >= 0 && value <= 12)
-        {
+        if (value >= 0 && value <= 12) {
             dataMatrix[id][0]++;
-        }
-        else if (value > 12 && value <= 35.4)
-        {
+        } else if (value > 12 && value <= 35.4) {
             dataMatrix[id][1]++;
-        }
-        else if (value > 35.4 && value <= 55.4)
-        {
+        } else if (value > 35.4 && value <= 55.4) {
             dataMatrix[id][2]++;
-        }
-        else if (value > 55.4 && value <= 150.4)
-        {
+        } else if (value > 55.4 && value <= 150.4) {
             dataMatrix[id][3]++;
-        }
-        else if (value > 150.4 && value <= 250.4)
-        {
+        } else if (value > 150.4 && value <= 250.4) {
             dataMatrix[id][4]++;
-        }
-        else if (value > 250.4 && value <= 350.4)
-        {
+        } else if (value > 250.4 && value <= 350.4) {
             dataMatrix[id][5]++;
-        }
-        else if (value > 350.4 && value <= 550.5)
-        {
+        } else if (value > 350.4 && value <= 550.5) {
             dataMatrix[id][6]++;
         }
         visited[id] = 1;
@@ -472,11 +467,9 @@ void calculatePollutionStatistics(char *dataFilename) {
     printf("Pollution duration calculation completed. Results stored in 'dust_statistics.csv'.\n");
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 
-    if (argc != 2)
-    {
+    if (argc != 2) {
         printf("Error 03: invalid command\n");
         printf("Usage: program_name data_file\n");
         return 1;
