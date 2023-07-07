@@ -451,7 +451,7 @@ void calculatePollutionStatistics(char *dataFilename) {
     // Write the pollution duration to the statistics file
     fprintf(statisticsFile, "id, pollution, duration\n");
 
-    for (int i = 0; i < limit; i++) {
+    for (int i = 1; i < limit; i++) {
         if (visited[i] == 1) {
             for (size_t j = 0; j < 7; j++) {
                 int duration = dataMatrix[i][j];
