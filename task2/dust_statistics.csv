@@ -1,71 +1,36 @@
 id, pollution, duration
 1, Good, 0
-1, Moderate, 1
-1, Slightly unhealthy, 4
-1, Unhealthy, 536
-1, Very unhealthy, 165
-1, Hazardous, 14
-1, Extremely hazardous, 1
+1, Moderate, 0
+1, Slightly unhealthy, 0
+1, Unhealthy, 0
+1, Very unhealthy, 0
+1, Hazardous, 3
+1, Extremely hazardous, 4
 2, Good, 0
 2, Moderate, 0
-2, Slightly unhealthy, 7
-2, Unhealthy, 525
-2, Very unhealthy, 173
-2, Hazardous, 14
+2, Slightly unhealthy, 0
+2, Unhealthy, 0
+2, Very unhealthy, 0
+2, Hazardous, 6
 2, Extremely hazardous, 1
 3, Good, 0
 3, Moderate, 0
-3, Slightly unhealthy, 12
-3, Unhealthy, 499
-3, Very unhealthy, 198
-3, Hazardous, 12
-3, Extremely hazardous, 0
+3, Slightly unhealthy, 0
+3, Unhealthy, 0
+3, Very unhealthy, 0
+3, Hazardous, 3
+3, Extremely hazardous, 4
 4, Good, 0
-4, Moderate, 1
-4, Slightly unhealthy, 10
-4, Unhealthy, 504
-4, Very unhealthy, 191
-4, Hazardous, 12
-4, Extremely hazardous, 0
+4, Moderate, 0
+4, Slightly unhealthy, 0
+4, Unhealthy, 0
+4, Very unhealthy, 0
+4, Hazardous, 3
+4, Extremely hazardous, 4
 5, Good, 0
-5, Moderate, 1
-5, Slightly unhealthy, 10
-5, Unhealthy, 502
-5, Very unhealthy, 199
-5, Hazardous, 9
-5, Extremely hazardous, 0
-6, Good, 1
-6, Moderate, 1
-6, Slightly unhealthy, 7
-6, Unhealthy, 502
-6, Very unhealthy, 202
-6, Hazardous, 8
-6, Extremely hazardous, 0
-7, Good, 0
-7, Moderate, 1
-7, Slightly unhealthy, 14
-7, Unhealthy, 532
-7, Very unhealthy, 164
-7, Hazardous, 10
-7, Extremely hazardous, 0
-8, Good, 0
-8, Moderate, 1
-8, Slightly unhealthy, 13
-8, Unhealthy, 500
-8, Very unhealthy, 191
-8, Hazardous, 14
-8, Extremely hazardous, 1
-9, Good, 0
-9, Moderate, 1
-9, Slightly unhealthy, 9
-9, Unhealthy, 492
-9, Very unhealthy, 207
-9, Hazardous, 11
-9, Extremely hazardous, 0
-10, Good, 0
-10, Moderate, 1
-10, Slightly unhealthy, 9
-10, Unhealthy, 516
-10, Very unhealthy, 183
-10, Hazardous, 11
-10, Extremely hazardous, 1
+5, Moderate, 0
+5, Slightly unhealthy, 0
+5, Unhealthy, 0
+5, Very unhealthy, 0
+5, Hazardous, 4
+5, Extremely hazardous, 3

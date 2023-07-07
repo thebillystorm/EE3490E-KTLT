@@ -12,55 +12,52 @@
 #include <cstdint>
 
 using namespace std;
-void logError(const string& errorMessage) {
-    ofstream logFile("task3.log", ios::app); // Open log file in append mode
+void logError(const std::string& errorMessage) {
+    std::ofstream logFile("task3.log", std::ios::app); // Open log file in append mode
     if (logFile) {
-        logFile << errorMessage << endl;
+        logFile << errorMessage << std::endl;
         logFile.close();
     }
 }
-
-    // Error 01
-bool checkCSVFormat(const string& dataFilename) {
-    ifstream file(dataFilename);
+bool checkCSVFormat(const std::string& dataFilename) {
+    std::ifstream file(dataFilename);
     if (!file) {
-        logError("Error 01: input file '" + dataFilename + "' not found or not accessible");
+        logError("Error 01: Input file not found or not accessible");
         return false;
     }
 
-    // Error 02
-    string line;
-    if (!getline(file, line)) {
-        logError("Error 02: invalid csv file format");
+    std::string line;
+    if (!std::getline(file, line)) {
+        logError("Error 02: Input file does not have a header");
         return false;
     }
 
-    istringstream iss(line);
-    string field;
-    vector<string> header;
-    while (getline(iss, field, ',')) {
+    std::istringstream iss(line);
+    std::string field;
+    std::vector<std::string> header;
+    while (std::getline(iss, field, ',')) {
         header.push_back(field);
     }
 
     if (header.empty()) {
-        logError("Error 02: invalid csv file format");
+        logError("Error 02: Invalid CSV file format");
         return false;
     }
 
-    string previousLine = line;
+    std::string previousLine = line;
     int previousFieldCount = header.size();
     int lineNumber = 1;
-    while (getline(file, line)) {
+    while (std::getline(file, line)) {
         lineNumber++;
 
-        istringstream iss(line);
+        std::istringstream iss(line);
         int fieldCount = 0;
-        while (getline(iss, field, ',')) {
+        while (std::getline(iss, field, ',')) {
             fieldCount++;
         }
 
         if (fieldCount != previousFieldCount) {
-            logError("Error 02: invalid csv file format");
+            logError("Error 02: Invalid CSV file format");
             return false;
         }
 
@@ -70,8 +67,84 @@ bool checkCSVFormat(const string& dataFilename) {
     return true;
 }
 
-    // Error 03
-bool processFiles(const string& inputFile, const string& outputFile) {
+bool checkOutputFile(const std::string& outputFilename) {
+    std::ifstream outputFile(outputFilename);
+    return outputFile.good();
+}
+
+void processFile(const std::string& outputFilename) {
+  
+    std::string errorFilename = "task3.log";
+    // Check if the output file already exists
+    if (checkOutputFile(outputFilename)) {
+        // Output file exists, write an error message to the error log file
+        std::ofstream errorFile(errorFilename, std::ios::app);
+        if (errorFile) {
+            errorFile << "Error 05: cannot override " << outputFilename << std::endl;
+            errorFile.close();
+        } else {
+            std::cerr << "Failed to open error log file: " << errorFilename << std::endl;
+        }
+
+        return;
+    }
+ 
+    std::ofstream outputFileWrite(outputFilename, std::ios::binary);
+    if (!outputFileWrite) {
+        std::cerr << "Failed to open output file: " << outputFilename << std::endl;
+        return;
+    }
+   
+    outputFileWrite.close();
+}
+
+bool isBlank(const std::string& str) {
+    return str.find_first_not_of(' ') == std::string::npos;
+}
+
+bool isTimeValid(const std::string& time) {
+    return (time.length() == 19 &&
+            time[4] == ':' && time[7] == ':' && time[10] == ' ' &&
+            time[13] == ':' && time[16] == ':');
+}
+
+void checkInputFile(const std::string& filename) {
+    std::ifstream inputFile(filename);
+    std::string line;
+    int lineNumber = 0;
+    bool errorFound = false;
+
+    // Create error log file
+    std::ofstream errorLog("task3.log");
+
+    // Process the lines
+    while (std::getline(inputFile, line)) {
+        lineNumber++;
+
+        std::istringstream iss(line);
+        std::string id, time, value, aqi, pollution;
+
+        // Read the fields from the line
+        std::getline(iss, id, ',');
+        std::getline(iss, time, ',');
+        std::getline(iss, value, ',');
+        std::getline(iss, aqi, ',');
+        std::getline(iss, pollution, ',');
+
+        // Check for errors
+        if (lineNumber > 1){
+        if (isBlank(id) || isBlank(time) || isBlank(value) || isBlank(aqi) || isBlank(pollution) ||
+            !isTimeValid(time)) {
+            logError("Error 04: Invalid data format at line " + std::to_string(lineNumber));
+            errorFound = true;
+        }
+        }
+    }
+
+    inputFile.close();
+}
+
+bool processFiles(const std::string& inputFile, const std::string& outputFile) {
     if (inputFile.empty() || outputFile.empty()) {
         logError("Error 03: invalid command");
         return false;
@@ -81,101 +154,9 @@ bool processFiles(const string& inputFile, const string& outputFile) {
         return false;
     }
 
+    // Rest of the processing logic for files...
+
     return true;
-}
-
-bool checkOutputFile(const string& outputFilename)
-{
-    ifstream outputFile(outputFilename);
-    return outputFile.good();
-}
-
-    // Error 05
-void processFile(const string& inputFilename)
-{
-    string outputFilename = "hex_packet_ee3490e.dat";
-    string errorFilename = "task3.log";
-
-    // Check if the output file already exists
-    if (checkOutputFile(outputFilename)) {
-        // Output file exists, write an error message to the error log file
-        ofstream errorFile(errorFilename, ios::app);
-        if (errorFile) {
-            errorFile << "Error 05: cannot override " << outputFilename << endl;
-            errorFile.close();
-        } else {
-            cerr << "Failed to open error log file: " << errorFilename << endl;
-        }
-
-        return;
-    }
-
-    ifstream inputFile(inputFilename, ios::binary);
-    if (!inputFile) {
-        cerr << "Failed to open input file: " << inputFilename << endl;
-        return;
-    }
-
-    ofstream outputFileWrite(outputFilename, ios::binary);
-    if (!outputFileWrite) {
-        cerr << "Failed to open output file: " << outputFilename << endl;
-        return;
-    }
-
-    outputFileWrite << inputFile.rdbuf();
-
-    inputFile.close();
-    outputFileWrite.close();
-}
-
-// Error 04
-bool isBlank(const string& str) {
-    return str.find_first_not_of(' ') == string::npos;
-}
-
-bool isTimeValid(const string& time) {
-    return (time.length() == 19 &&
-            time[4] == ':' && time[7] == ':' && time[10] == ' ' &&
-            time[13] == ':' && time[16] == ':');
-}
-
-void checkInputFile(const string& filename) {
-    ifstream inputFile(filename);
-    string line;
-    int lineNumber = 0;
-    bool errorFound = false;
-
-    // Create error log file
-    ofstream errorLog("task3.log");
-
-    // Process the lines
-    while (getline(inputFile, line)) {
-        lineNumber++;
-
-        istringstream iss(line);
-        string id, time, value, aqi, pollution;
-
-        // Read the fields from the line
-        getline(iss, id, ',');
-        getline(iss, time, ',');
-        getline(iss, value, ',');
-        getline(iss, aqi, ',');
-        getline(iss, pollution, ',');
-
-        // Check for errors
-        if (isBlank(id) || isBlank(time) || isBlank(value) || isBlank(aqi) || isBlank(pollution) ||
-            !isTimeValid(time)) {
-            errorLog << "Error 04: Invalid data format at line " << lineNumber << endl;
-            errorFound = true;
-        }
-    }
-
-    if (!errorFound) {
-        errorLog.close();
-        remove("task3.log");
-    }
-
-    inputFile.close();
 }
 string addStartBytes(const string& input) {
     return "7a";
@@ -345,24 +326,14 @@ string calculatePacketLength(const string& packet) {
     return "0f";
 }
 
-int main() {
-    string filename = "dust_aqi.csv";
-    string inputFilename = "hex.dat";
+int main(int argc, char *argv[]) {
+    string filename = argv[1];
+    string inputFilename = argv[2];
     checkInputFile(filename);
     processFile(inputFilename);
-
-    if (checkCSVFormat(filename)) {
-        logError("Error 02: Invalid CSV file format.");
-    }
-
-    if (processFiles("input_file.csv", "output_file.csv")) {
-        logError("Files processed successfully.");
-    }
-    else {
-        logError("Error 03: Invalid command.");
-    }
+    checkCSVFormat(filename);
     ofstream fileout;
-    fileout.open("hex.dat",ios_base::out);
+    fileout.open(inputFilename,ios_base::out);
     vector<DataEntry> dataList = extractData(filename);
     for (const auto& data : dataList) {
         int unixTimestamp = getUnixTimestamp(data.year, data.month, data.day, data.hour, data.minute, data.second); 
@@ -378,6 +349,8 @@ int main() {
         fileout << insertSpaceEveryTwoCharacters(addStopBytes((calculateChecksumTwoComplement(tmp))));
         fileout << endl;
     }
+
+  
    
     fileout.close();
     return 0;
