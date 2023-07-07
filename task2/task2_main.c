@@ -9,15 +9,6 @@ int customERROR[4];
 int sensor_count = 0;
 int duration;
 
-/*
-@params: 
-
-
-
-
-
-*/
-
 // Task 2.1
 void filterOutliers(char *dataFilename) {
     FILE *dataFile = fopen(dataFilename, "r");
@@ -101,13 +92,12 @@ void filterOutliers(char *dataFilename) {
                + (durationDateArr[1] - durationDateArr[0]) * 24
                + (durationHourArr[1] - durationHourArr[0]);
 
-
-    printf("DURATION: %d \n", duration);
+    
     fprintf(outliersFile, "number of outliers: %d\n", numOutliers); //Sao mày ko lên trên đầu được :(
 
     fclose(dataFile);
     fclose(outliersFile);
-    printf("Outliers removed. Outliers stored in 'dust_outlier.csv'.\n");
+    
 }
 
 // Task 2.2
@@ -250,8 +240,7 @@ void calculateAQIFromFile(char *dataFilename) {
 
     }
 
-    //last hour
-    //
+    //last hour    
     for (int i = 1; i < limit; i++) {
         float avg = sensorStat[i][0] / sensorStat[i][1];
         //Calculate AQI and pollution level
@@ -263,12 +252,10 @@ void calculateAQIFromFile(char *dataFilename) {
 
     fclose(dataFile);
     fclose(aqiFile);
-    printf("AQI calculation completed. Results stored in 'dust_aqi.csv'.\n");
+    
 }
 
 // Task 2.3
-
-
 void processSensorData(char *dataFilename) {
 
     FILE *dataFile = fopen(dataFilename, "r");
@@ -352,7 +339,7 @@ void processSensorData(char *dataFilename) {
         fprintf(summaryFile, "%d, mean, %d:00:00, %.1f\n", i, duration, mean);
     }
     fclose(summaryFile);
-    printf("Pollution summary values completed. Results stored in 'dust_summary.csv'.\n");
+    
 }
 
 //Task 2.4
@@ -382,15 +369,11 @@ void calculatePollutionStatistics(char *dataFilename) {
         }
     }
     int visited[limit + 1];
-//    printf("Limit:  %d \n", limit);
-//    printf("%d, %f, %s\n", id, value, time);
-
     /*
     Lưu vào data Matrix. Với mỗi giá trị ở tọa độ `i` `j` 
     sẽ chứa thông tin về số lượng lượt appear của level `j` của chỉ số `i`
     e.g dataMatrix[10][2] sẽ chứa số lần "Moderate" xuất hiện với sensor 10
     */
-
 
     lineCount = 0;
     while (fgets(line, sizeof(line), dataFile) != NULL) {
@@ -461,8 +444,7 @@ void calculatePollutionStatistics(char *dataFilename) {
     }
 
     fclose(statisticsFile);
-
-    printf("Pollution duration calculation completed. Results stored in 'dust_statistics.csv'.\n");
+    
 }
 
 int main(int argc, char *argv[]) {

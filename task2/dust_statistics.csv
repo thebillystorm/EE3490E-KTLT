@@ -1,11 +1,4 @@
 id, pollution, duration
-0, Good, 0
-0, Moderate, 0
-0, Slightly unhealthy, 0
-0, Unhealthy, 0
-0, Very unhealthy, 0
-0, Hazardous, 0
-0, Extremely hazardous, 0
 1, Good, 0
 1, Moderate, 1
 1, Slightly unhealthy, 4
