@@ -9,6 +9,17 @@ int customERROR[4];
 int sensor_count = 0;
 int duration;
 
+FILE *errorLog; // File pointer for the error log
+
+// Function to log errors
+void logError(const char *errorMsg) {
+    if (errorLog != NULL) {
+        time_t currentTime;
+        time(&currentTime);
+        fprintf(errorLog, "[%s] %s\n", ctime(&currentTime), errorMsg);
+    }
+}
+
 // Task 2.1
 void filterOutliers(char *dataFilename) {
     FILE *dataFile = fopen(dataFilename, "r");
@@ -137,7 +148,6 @@ void calculateAQIFromFile(char *dataFilename) {
     FILE *dataFile = fopen(dataFilename, "r");
     FILE *aqiFile = fopen("dust_aqi.csv", "w");
 
-
     if (dataFile == NULL || aqiFile == NULL) {
         printf("Error 01: input file not found or not accessible\n");
         return;
@@ -240,7 +250,7 @@ void calculateAQIFromFile(char *dataFilename) {
 
     }
 
-    //last hour    
+    //Calculate for last hour    
     for (int i = 1; i < limit; i++) {
         float avg = sensorStat[i][0] / sensorStat[i][1];
         //Calculate AQI and pollution level
@@ -449,14 +459,21 @@ void calculatePollutionStatistics(char *dataFilename) {
 
 int main(int argc, char *argv[]) {
 
+ // Open the error log file
+    FILE *logFile = fopen("task2.log", "a");
+    if (logFile == NULL) {
+        printf("Error opening the error log file\n");
+        return 1;
+    }
+
     if (argc != 2) {
-        printf("Error 03: invalid command\n");
+        fprintf(logFile, "Error 03: invalid command\n");
         printf("Usage: program_name data_file\n");
         return 1;
     }
 
     char *dataFilename = argv[1];
-
+   
     filterOutliers(dataFilename);
     calculateAQIFromFile(dataFilename);
     processSensorData(dataFilename);

@@ -1,0 +1,4 @@
+Error 05: cannot override hex_filename.dat
+Error 01: input file 'dust_aqi.csv' not found or not accessible
+Error 01: input file 'input_file.csv' not found or not accessible
+Error 03: Invalid command.
