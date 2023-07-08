@@ -218,7 +218,7 @@ void calculateAQIFromFile(char *dataFilename)
         if (hour != currentHour[id]) {
             
             float avg = sensorStat[id][0]/sensorStat[id][1];
-           // printf("%d,%s %d:00:00,%.1f\n", id,date,currentHour[id], avg);
+            // printf("%d,%s %d:00:00,%.1f\n", id,date,currentHour[id], avg);
 
             //Calculate AQI and pollution level
             int aqi;
@@ -229,10 +229,11 @@ void calculateAQIFromFile(char *dataFilename)
             strncpy(currentDate[id], time, 10);
             currentDate[id][10] = '\0';
             currentHour[id] = hour;
-            fprintf(aqiFile, "%d,%s %02d:00:00,%.1f,%d,%s\n", id,currentDate[id],currentHour[id], avg, aqi, pollution);
+            if (sensorStat[id][0] > 0)
+                fprintf(aqiFile, "%d,%s %02d:00:00,%.1f,%d,%s\n", id,currentDate[id],currentHour[id], avg, aqi, pollution);
 
-            
-
+        
+           
             sensorStat[id][0] = value;
             sensorStat[id][1] = value == 0 ? 0 : 1;
             
@@ -245,13 +246,16 @@ void calculateAQIFromFile(char *dataFilename)
 
     //last hour
     //
-    for (int i = 1; i < limit; i++) {
+    for (int i = 1; i < limit; i++) {   
         float avg = sensorStat[i][0]/sensorStat[i][1];
         //Calculate AQI and pollution level
         int aqi;
         const char *pollution;
         pollutionLevelCalculating(avg, &aqi, &pollution);    
-        fprintf(aqiFile, "%d,%s %02d:00:00,%.1f,%d,%s\n", i,currentDate[i],currentHour[i] + 1, avg, aqi, pollution);
+        
+        if (sensorStat[i][0] > 0) 
+            fprintf(aqiFile, "%d,%s %02d:00:00,%.1f,%d,%s\n", i,currentDate[i],currentHour[i] + 1, avg, aqi, pollution);   
+    
     }
 
     fclose(dataFile);
